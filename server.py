@@ -13,6 +13,7 @@ client_sockets = []
 client_ips = []
 client_ports = []
 broadcast_msg_list = []
+c1_md5_list, c2_md5_list, c3_md5_list, c4_md5_list = [], [], [], []
 
 
 def accept_4clients_connection():
@@ -57,6 +58,7 @@ def broadcast_4clients():
 def main():
     accept_4clients_connection()
     broadcast_4clients()
+    # md5 해쉬값 받기
 
 
 if __name__ == "__main__":

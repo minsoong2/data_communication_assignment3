@@ -1,5 +1,6 @@
 import socket
 import re
+import hashlib
 import threading
 
 server_ip = '127.0.0.1'
@@ -46,6 +47,16 @@ def received_broadcasting_client_data(c_socket):
             connected_client_port_list.append(port_num)
 
 
+def calculate_file_md5(f_path):
+    md5_hash = hashlib.md5()
+
+    with open(f_path, 'rb') as file:
+        for byte_block in iter(lambda: file.read(4096), b""):
+            md5_hash.update(byte_block)
+
+    return md5_hash.hexdigest()
+
+
 if __name__ == "__main__":
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((server_ip, server_port))
@@ -58,6 +69,7 @@ if __name__ == "__main__":
         received_broadcasting_client_data(client_socket)
         print(connected_client_ip_list)
         print(connected_client_port_list)
+        print(calculate_file_md5(file_path))
         with open(file_path, 'rb') as file:
             print()
             # send_data(client_socket, file)
