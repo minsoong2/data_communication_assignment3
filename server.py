@@ -15,13 +15,14 @@ client_ports = []
 broadcast_msg_list = []
 c1_md5_list, c2_md5_list, c3_md5_list, c4_md5_list = [], [], [], []
 
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server.bind((ip, port))
+server.listen(4)
+
 
 def accept_4clients_connection():
 
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind((ip, port))
-    server.listen(4)
     client_accept_cnt = 0
 
     if client_accept_cnt == 0:
@@ -58,7 +59,6 @@ def broadcast_4clients():
 def main():
     accept_4clients_connection()
     broadcast_4clients()
-    # md5 해쉬값 받기
 
 
 if __name__ == "__main__":
