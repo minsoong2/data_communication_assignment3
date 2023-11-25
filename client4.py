@@ -1,6 +1,7 @@
 import socket
 import re
 import hashlib
+import time
 import threading
 
 server_ip = '127.0.0.1'
@@ -12,8 +13,19 @@ client_port = 5004
 chunk_size = 256 * 1024
 file_path = r'C:\Users\minsoo\Downloads\file\D.file'
 file_collection = []
+connected_client_socket_list = []
 connected_client_ip_list = []
 connected_client_port_list = []
+
+
+def calculate_file_md5(f_path):
+    md5_hash = hashlib.md5()
+
+    with open(f_path, 'rb') as file:
+        for byte_block in iter(lambda: file.read(4096), b""):
+            md5_hash.update(byte_block)
+
+    return md5_hash.hexdigest()
 
 
 def received_broadcasting_client_data(c_socket):
@@ -47,14 +59,21 @@ def received_data(c_socket, f):
         print(f"Received data: {data}")
 
 
-def calculate_file_md5(f_path):
-    md5_hash = hashlib.md5()
+def connect_between_clients(c_ip_list, c_port_list):
+    temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    temp_socket.bind((client_ip, client_port))
+    temp_socket.listen(3)
 
-    with open(f_path, 'rb') as file:
-        for byte_block in iter(lambda: file.read(4096), b""):
-            md5_hash.update(byte_block)
-
-    return md5_hash.hexdigest()
+    for c_ip, c_port in zip(c_ip_list, c_port_list):
+        if c_ip != client_ip and c_port != client_port:
+            connect_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            connect_socket.connect((c_ip, c_port))
+            c_socket, c_address = temp_socket.accept()
+            accept = f"Accepted connection from {c_address}"
+            print(accept)
+            # f.write(accept + '\n')
+            connected_client_socket_list.append(c_socket)
+    print(connected_client_socket_list)
 
 
 if __name__ == "__main__":
@@ -67,10 +86,10 @@ if __name__ == "__main__":
     # with open(f"Client{client_socket.getsockname()[1]}.txt", "w") as f:
     try:
         received_broadcasting_client_data(client_socket)
-        print(connected_client_ip_list)
-        print(connected_client_port_list)
-        having_md5 = calculate_file_md5(file_path)
-        client_socket.send(having_md5)
+        print(connected_client_ip_list, connected_client_port_list)
+
+        connect_between_clients(connected_client_ip_list, connected_client_port_list)
+        print(calculate_file_md5(file_path))
         with open(file_path, 'rb') as file:
             print()
             # send_data(client_socket, file)

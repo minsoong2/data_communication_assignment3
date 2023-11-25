@@ -1,8 +1,8 @@
 import socket
 import re
 import threading
-import random
 import time
+import random
 
 ip = '127.0.0.1'
 port = 8888
@@ -21,7 +21,7 @@ def accept_4clients_connection():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind((ip, port))
-    server.listen(1)
+    server.listen(4)
     client_accept_cnt = 0
 
     if client_accept_cnt == 0:
