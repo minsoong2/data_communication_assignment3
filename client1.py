@@ -20,7 +20,7 @@ having_md5_list = []
 
 c1_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 c1_socket.bind((client_ip, client_port))
-c1_socket.listen(3)
+c1_socket.listen(4)
 
 
 def received_broadcasting_client_data(c_socket):
@@ -50,14 +50,13 @@ def calculate_file_md5(f_path):
 def connect_between_clients(c_ip_list, c_port_list):
     for c_ip, c_port in zip(c_ip_list, c_port_list):
         if c_ip != client_ip and c_port != client_port:
-            print(c_ip, c_port)
-            c_socket, c_address = c1_socket.accept()
-            accept = f"Accepted connection from {c_address}"
-            print(accept)
-            # f.write(accept + '\n')
-            connected_client_socket_list.append(c_socket)
+            connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            connected_socket.connect((c_ip, c_port))
+            print(connected_socket)
+            connected_client_socket_list.append(connected_socket)
     print(connected_client_socket_list)
-# 클라이언트 받을준비는 되어있고 이제 각자의 클라이언트에서 연결 .connect 구현하기
+# 클라이언트 받을 준비는 되어 있고 이제 각자의 클라이언트에서 연결 .connect 구현하기
+
 
 # send_data: f -> 가지고 있는 파일
 def send_data(c_socket, f):
@@ -88,8 +87,8 @@ if __name__ == "__main__":
     try:
         received_broadcasting_client_data(client_socket)
         print(connected_client_ip_list, connected_client_port_list)
-
         connect_between_clients(connected_client_ip_list, connected_client_port_list)
+
         md5 = calculate_file_md5(file_path)
         having_md5_list.append(md5)
         client_socket.send(md5.encode())
