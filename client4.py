@@ -61,9 +61,9 @@ def connect_between_clients(c_ip_list, c_port_list):
     c4_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     c4_socket.bind((client_ip, client_port))
     c4_socket.listen(3)
-    time.sleep(1)
     for c_ip, c_port in zip(c_ip_list, c_port_list):
         if c_ip != client_ip and c_port != client_port:
+            time.sleep(0.1)
             connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             connected_socket.connect((c_ip, c_port))
             print(connected_socket)
@@ -87,7 +87,11 @@ if __name__ == "__main__":
 
         md5 = calculate_file_md5(file_path)
         having_md5_list.append(md5)
-        client_socket.send(md5.encode())
+        client_info_md5_data = f"Client ({client_ip}, {client_port}) {md5}"
+        client_socket.send(client_info_md5_data.encode())
+
+        received_md5_info = client_socket.recv(1024).decode()
+        print(received_md5_info)
         with open(file_path, 'rb') as file:
             print()
             # send_data(client_socket, file)
