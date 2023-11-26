@@ -17,6 +17,7 @@ connected_client_socket_list = []
 connected_client_ip_list = []
 connected_client_port_list = []
 having_md5_list = []
+having_chunk_list = []
 
 
 def received_broadcasting_client_data(c_socket):

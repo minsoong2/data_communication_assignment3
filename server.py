@@ -15,6 +15,7 @@ client_ports = []
 
 connected_client_list = []
 c1_md5_list, c2_md5_list, c3_md5_list, c4_md5_list = [], [], [], []
+c1_chunk_list, c2_chunk_list, c3_chunk_list, c4_chunk_list = [], [], [], []
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
