@@ -12,7 +12,6 @@ chunk_size = 256 * 1024
 client_sockets = []
 client_ips = []
 client_ports = []
-broadcast_msg_list = []
 c1_md5_list, c2_md5_list, c3_md5_list, c4_md5_list = [], [], [], []
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,19 +45,41 @@ def accept_4clients_connection():
             client_ports.append(port_num)
 
 
-def broadcast_4clients():
+def broadcast_4clients(cs):
+    broadcast_msg_list = []
     for c_ip, c_port in zip(client_ips, client_ports):
         broadcast_msg = f"Client ({c_ip}, {c_port})"
         broadcast_msg_list.append(broadcast_msg)
     print(broadcast_msg_list)
     send_msg = ' '.join(broadcast_msg_list)
-    for cs in client_sockets:
-        cs.send(send_msg.encode())
+    cs.send(send_msg.encode())
+
+
+def receive_md5_data(cs):
+    data = cs.recv(4096).decode()
+    print(data)
 
 
 def main():
     accept_4clients_connection()
-    broadcast_4clients()
+
+    broadcast_threads = []
+    for cs in client_sockets:
+        server_thread = threading.Thread(target=broadcast_4clients, args=(cs,))
+        server_thread.start()
+        broadcast_threads.append(server_thread)
+
+    for t in broadcast_threads:
+        t.join()
+
+    receive_md5_threads = []
+    for cs in client_sockets:
+        server_thread = threading.Thread(target=receive_md5_data, args=(cs,))
+        server_thread.start()
+        receive_md5_threads.append(server_thread)
+
+    for t in receive_md5_threads:
+        t.join()
 
 
 if __name__ == "__main__":

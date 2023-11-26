@@ -18,23 +18,16 @@ connected_client_ip_list = []
 connected_client_port_list = []
 having_md5_list = []
 
-c1_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-c1_socket.bind((client_ip, client_port))
-c1_socket.listen(4)
-
 
 def received_broadcasting_client_data(c_socket):
-    while True:
-        received_client_info = c_socket.recv(1024).decode()
-        print(received_client_info)
-        if not received_client_info:
-            break
-        matches = re.findall(r'\((\d+\.\d+\.\d+\.\d+), (\d+)\)', received_client_info)
-        for match in matches:
-            ip_addr = match[0]
-            port_num = int(match[1])
-            connected_client_ip_list.append(ip_addr)
-            connected_client_port_list.append(port_num)
+    received_client_info = c_socket.recv(1024).decode()
+    print(received_client_info)
+    matches = re.findall(r'\((\d+\.\d+\.\d+\.\d+), (\d+)\)', received_client_info)
+    for match in matches:
+        ip_addr = match[0]
+        port_num = int(match[1])
+        connected_client_ip_list.append(ip_addr)
+        connected_client_port_list.append(port_num)
 
 
 def calculate_file_md5(f_path):
@@ -48,6 +41,10 @@ def calculate_file_md5(f_path):
 
 
 def connect_between_clients(c_ip_list, c_port_list):
+    c1_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    c1_socket.bind((client_ip, client_port))
+    c1_socket.listen(3)
+    time.sleep(1)
     for c_ip, c_port in zip(c_ip_list, c_port_list):
         if c_ip != client_ip and c_port != client_port:
             connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -55,7 +52,6 @@ def connect_between_clients(c_ip_list, c_port_list):
             print(connected_socket)
             connected_client_socket_list.append(connected_socket)
     print(connected_client_socket_list)
-# 클라이언트 받을 준비는 되어 있고 이제 각자의 클라이언트에서 연결 .connect 구현하기
 
 
 # send_data: f -> 가지고 있는 파일
