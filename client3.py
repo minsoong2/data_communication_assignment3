@@ -64,7 +64,7 @@ def connect_between_clients(c_ip_list, c_port_list):
     c3_socket.listen(3)
     for c_ip, c_port in zip(c_ip_list, c_port_list):
         if c_ip != client_ip and c_port != client_port:
-            time.sleep(0.1)
+            time.sleep(1)
             connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             connected_socket.connect((c_ip, c_port))
             print(connected_socket)
