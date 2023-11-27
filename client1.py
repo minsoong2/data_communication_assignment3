@@ -41,17 +41,13 @@ def calculate_file_md5(f_path):
     return md5_hash.hexdigest()
 
 
-def connect_between_clients(c_ip_list, c_port_list):
-    c1_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    c1_socket.bind((client_ip, client_port))
-    c1_socket.listen(3)
-    for c_ip, c_port in zip(c_ip_list, c_port_list):
-        if c_ip != client_ip and c_port != client_port:
-            time.sleep(1)
-            connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            connected_socket.connect((c_ip, c_port))
-            print(connected_socket)
-            connected_client_socket_list.append(connected_socket)
+def connect_between_clients(c_ip, c_port):
+    if c_ip != client_ip and c_port != client_port:
+        time.sleep(1)
+        connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        connected_socket.connect((c_ip, c_port))
+        print(connected_socket)
+        connected_client_socket_list.append(connected_socket)
     print(connected_client_socket_list)
 
 
@@ -80,19 +76,30 @@ if __name__ == "__main__":
     client_socket.send(client_info.encode())
     print(f"Client {client_socket.getsockname()[1]}: Connected to the server")
 
+    received_broadcasting_client_data(client_socket)
+    print(connected_client_ip_list, connected_client_port_list)
+
+    md5 = calculate_file_md5(file_path)
+    having_md5_list.append(md5)
+    client_info_md5_data = f"Client ({client_ip}, {client_port}) {md5}"
+    client_socket.send(client_info_md5_data.encode())
+
+    received_md5_info = client_socket.recv(1024).decode()
+    print(received_md5_info)
+
     # with open(f"Client{client_socket.getsockname()[1]}.txt", "w") as f:
     try:
-        received_broadcasting_client_data(client_socket)
-        print(connected_client_ip_list, connected_client_port_list)
-        connect_between_clients(connected_client_ip_list, connected_client_port_list)
 
-        md5 = calculate_file_md5(file_path)
-        having_md5_list.append(md5)
-        client_info_md5_data = f"Client ({client_ip}, {client_port}) {md5}"
-        client_socket.send(client_info_md5_data.encode())
+        c1_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        c1_socket.bind((client_ip, client_port))
+        c1_socket.listen(3)
 
-        received_md5_info = client_socket.recv(1024).decode()
-        print(received_md5_info)
+        for _ in range(3):
+            new_client_socket, new_client_address = c1_socket.accept()
+            accept = f"Accepted connection from {new_client_address}"
+            print(accept)
+            # f.write(accept + '\n')
+            connected_client_socket_list.append(new_client_socket)
 
         pattern = r"\((\d+\.\d+\.\d+\.\d+), (\d+)\) \['([a-fA-F0-9]+)'\]"
         matches = re.findall(pattern, received_md5_info)
@@ -100,15 +107,11 @@ if __name__ == "__main__":
             ip_addr, port_num, md5_value = match[0], int(match[1]), match[2]
             if client_ip == ip_addr and client_port == port_num:
                 continue
-            if md5_value != md5:
-                print(ip_addr, port_num, md5_value)
-
-        with open(file_path, 'rb') as file:
-            print()
-            # send_data(client_socket, file)
+            elif md5_value != md5:
+                connect_between_clients(ip_addr, port_num)
 
     except ConnectionResetError:
-        msg = f"Cli nt {client_socket.getsockname()[1]}: Connection to the server was forcibly closed."
+        msg = f"Client {client_socket.getsockname()[1]}: Connection was forcibly closed."
         print(msg)
         # f.write(msg + '\n')
     except KeyboardInterrupt:
