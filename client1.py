@@ -108,6 +108,7 @@ if __name__ == "__main__":
 
         for _ in range(3):
             new_client_socket, new_client_address = c1_socket.accept()
+            connected_r_client_socket_list.append(new_client_socket)
             # f.write(accept + '\n')
 
         c1_threads = []
