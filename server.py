@@ -114,8 +114,6 @@ def main():
     for t in broadcast_md5_info_threads:
         t.join()
 
-    #
-
 
 if __name__ == "__main__":
     main()

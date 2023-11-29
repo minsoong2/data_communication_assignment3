@@ -13,7 +13,8 @@ client_port = 5002
 chunk_size = 256 * 1024
 file_path = r'C:\Users\minsoo\Downloads\file\B.file'
 file_collection = []
-connected_client_socket_list = []
+connected_s_client_socket_list = []
+connected_r_client_socket_list = []
 connected_client_ip_list = []
 connected_client_port_list = []
 having_md5_list = []
@@ -42,13 +43,14 @@ def calculate_file_md5(f_path):
     return md5_hash.hexdigest()
 
 
-def send_data(c_socket, f): # f -> 가지고 있는 파일
-    while True:
-        chunk = f.read(chunk_size)
-        print(type(chunk))
-        if not chunk:
-            break
-        c_socket.send(chunk)
+def send_data(c_socket, f_path):
+    with open(f_path, 'rb') as file:
+        while True:
+            chunk = file.read(chunk_size)
+            print(type(chunk))
+            if not chunk:
+                break
+            c_socket.send(chunk)
 
 
 def received_data(c_socket):
@@ -56,7 +58,7 @@ def received_data(c_socket):
         data = c_socket.recv(chunk_size)
         if not data:
             break
-        print(f"Received data: {data}")
+        print(type(data))
 
 
 def connect_between_clients(c_ip, c_port):
@@ -65,8 +67,8 @@ def connect_between_clients(c_ip, c_port):
         connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         connected_socket.connect((c_ip, c_port))
         print(connected_socket)
-        connected_client_socket_list.append(connected_socket)
-    print(connected_client_socket_list)
+        connected_s_client_socket_list.append(connected_socket)
+    print(connected_s_client_socket_list)
 
 
 if __name__ == "__main__":
@@ -105,10 +107,8 @@ if __name__ == "__main__":
 
         for _ in range(3):
             new_client_socket, new_client_address = c2_socket.accept()
-            accept = f"Accepted connection from {new_client_address}"
-            print(accept)
+            received_data(new_client_socket)
             # f.write(accept + '\n')
-            connected_client_socket_list.append(new_client_socket)
 
     except ConnectionResetError:
         msg = f"Client {client_socket.getsockname()[1]}: Connection was forcibly closed."

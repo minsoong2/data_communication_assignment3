@@ -13,11 +13,13 @@ client_port = 5001
 chunk_size = 256 * 1024
 file_path = r'C:\Users\minsoo\Downloads\file\A.file'
 file_collection = []
-connected_client_socket_list = []
+connected_s_client_socket_list = []
+connected_r_client_socket_list = []
 connected_client_ip_list = []
 connected_client_port_list = []
 having_md5_list = []
 having_chunk_list = []
+lock = threading.Lock()
 
 
 def received_broadcasting_client_data(c_socket):
@@ -42,23 +44,24 @@ def calculate_file_md5(f_path):
 
 
 def connect_between_clients(c_ip, c_port):
+    lock.acquire()
     if c_ip != client_ip and c_port != client_port:
-        time.sleep(1)
         connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         connected_socket.connect((c_ip, c_port))
         print(connected_socket)
-        connected_client_socket_list.append(connected_socket)
-    print(connected_client_socket_list)
+        connected_s_client_socket_list.append(connected_socket)
+    print(connected_s_client_socket_list)
+    lock.release()
 
 
-# send_data: f -> 가지고 있는 파일
-def send_data(c_socket, f):
-    while True:
-        chunk = f.read(chunk_size)
-        print(type(chunk))
-        if not chunk:
-            break
-        c_socket.send(chunk)
+def send_data(c_socket, f_path):
+    with open(f_path, 'rb') as file:
+        while True:
+            chunk = file.read(chunk_size)
+            print(type(chunk))
+            if not chunk:
+                break
+            c_socket.send(chunk)
 
 
 def received_data(c_socket):
@@ -94,13 +97,6 @@ if __name__ == "__main__":
         c1_socket.bind((client_ip, client_port))
         c1_socket.listen(3)
 
-        for _ in range(3):
-            new_client_socket, new_client_address = c1_socket.accept()
-            accept = f"Accepted connection from {new_client_address}"
-            print(accept)
-            # f.write(accept + '\n')
-            connected_client_socket_list.append(new_client_socket)
-
         pattern = r"\((\d+\.\d+\.\d+\.\d+), (\d+)\) \['([a-fA-F0-9]+)'\]"
         matches = re.findall(pattern, received_md5_info)
         for match in matches:
@@ -109,6 +105,22 @@ if __name__ == "__main__":
                 continue
             elif md5_value != md5:
                 connect_between_clients(ip_addr, port_num)
+
+        for _ in range(3):
+            new_client_socket, new_client_address = c1_socket.accept()
+            # f.write(accept + '\n')
+
+        c1_threads = []
+        for cs in connected_s_client_socket_list:
+            c1_thread = threading.Thread(target=send_data, args=(cs, file_path))
+            c1_threads.append(c1_thread)
+
+        for t in c1_threads:
+            t.start()
+
+        for t in c1_threads:
+            t.join()
+        # with open(file_path, 'rb') as f:
 
     except ConnectionResetError:
         msg = f"Client {client_socket.getsockname()[1]}: Connection was forcibly closed."
