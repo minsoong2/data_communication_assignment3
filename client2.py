@@ -110,6 +110,16 @@ if __name__ == "__main__":
             connected_r_client_socket_list.append(new_client_socket)
             # f.write(accept + '\n')
 
+        c2_send_threads, c2_receive_threads = [], []
+        for cs in connected_s_client_socket_list:
+            c2_s_thread = threading.Thread(target=send_data, args=(cs, file_path))
+            c2_send_threads.append(c2_s_thread)
+
+        for cs in connected_r_client_socket_list:
+            c2_r_thread = threading.Thread(target=received_data, args=(cs,))
+            c2_receive_threads.append(c2_r_thread)
+
+
     except ConnectionResetError:
         msg = f"Client {client_socket.getsockname()[1]}: Connection was forcibly closed."
         print(msg)
