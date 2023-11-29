@@ -119,7 +119,6 @@ if __name__ == "__main__":
             c2_r_thread = threading.Thread(target=received_data, args=(cs,))
             c2_receive_threads.append(c2_r_thread)
 
-
     except ConnectionResetError:
         msg = f"Client {client_socket.getsockname()[1]}: Connection was forcibly closed."
         print(msg)

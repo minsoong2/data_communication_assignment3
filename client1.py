@@ -44,14 +44,13 @@ def calculate_file_md5(f_path):
 
 
 def connect_between_clients(c_ip, c_port):
-    lock.acquire()
     if c_ip != client_ip and c_port != client_port:
+        time.sleep(0.5)
         connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         connected_socket.connect((c_ip, c_port))
         print(connected_socket)
         connected_s_client_socket_list.append(connected_socket)
     print(connected_s_client_socket_list)
-    lock.release()
 
 
 def send_data(c_socket, f_path):
@@ -118,7 +117,6 @@ if __name__ == "__main__":
         for cs in connected_r_client_socket_list:
             c1_r_thread = threading.Thread(target=received_data, args=(cs,))
             c1_receive_threads.append(c1_r_thread)
-
 
     except ConnectionResetError:
         msg = f"Client {client_socket.getsockname()[1]}: Connection was forcibly closed."
