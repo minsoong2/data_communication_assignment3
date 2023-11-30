@@ -21,6 +21,7 @@ having_md5_list = []
 having_chunk_list = []
 
 
+
 def received_broadcasting_client_data(c_socket):
     received_client_info = c_socket.recv(1024).decode()
     print(received_client_info)
@@ -116,6 +117,14 @@ if __name__ == "__main__":
         for cs in connected_r_client_socket_list:
             c3_r_thread = threading.Thread(target=received_data, args=(cs,))
             c3_receive_threads.append(c3_r_thread)
+
+        for st, rt in zip(c3_send_threads, c3_receive_threads):
+            st.start()
+            rt.start()
+
+        for st, rt in zip(c3_send_threads, c3_receive_threads):
+            st.join()
+            rt.join()
 
     except ConnectionResetError:
         msg = f"Client {client_socket.getsockname()[1]}: Connection was forcibly closed."
