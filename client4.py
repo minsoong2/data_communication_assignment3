@@ -43,21 +43,29 @@ def received_broadcasting_client_data(c_socket):
 
 
 def send_data(c_socket, f_path):
+
     with open(f_path, 'rb') as file:
         while True:
             chunk = file.read(chunk_size)
             print(type(chunk))
-            if not chunk:
+            if chunk == b'':
                 break
             c_socket.send(chunk)
 
 
-def received_data(c_socket):
-    while True:
-        data = c_socket.recv(chunk_size)
-        if not data:
-            break
-        print(type(data))
+def received_data(c_socket, f_path):
+    c_socket.settimeout(1.0)
+
+    with open(f_path, 'wb') as file:
+        while True:
+            try:
+                data = c_socket.recv(chunk_size)
+                if data == b'':
+                    break
+                file.write(data)
+                print(type(data))
+            except socket.timeout:
+                break
 
 
 def connect_between_clients(c_ip, c_port):
@@ -113,8 +121,9 @@ if __name__ == "__main__":
             c4_s_thread = threading.Thread(target=send_data, args=(cs, file_path))
             c4_send_threads.append(c4_s_thread)
 
-        for cs in connected_r_client_socket_list:
-            c4_r_thread = threading.Thread(target=received_data, args=(cs,))
+        for idx, cs in enumerate(connected_r_client_socket_list):
+            save_file_path = rf'C:\Users\minsoo\Downloads\file\client4\received_new{idx + 1}.file'
+            c4_r_thread = threading.Thread(target=received_data, args=(cs, save_file_path))
             c4_receive_threads.append(c4_r_thread)
 
         for st, rt in zip(c4_send_threads, c4_receive_threads):
