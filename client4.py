@@ -21,6 +21,17 @@ having_md5_list = []
 having_chunk_list = []
 
 
+def received_broadcasting_client_data(c_socket):
+    received_client_info = c_socket.recv(1024).decode()
+    print(received_client_info)
+    matches = re.findall(r'\((\d+\.\d+\.\d+\.\d+), (\d+)\)', received_client_info)
+    for match in matches:
+        ip_addr = match[0]
+        port_num = int(match[1])
+        connected_client_ip_list.append(ip_addr)
+        connected_client_port_list.append(port_num)
+
+
 def calculate_file_md5(f_path):
     md5_hash = hashlib.md5()
 
@@ -31,15 +42,14 @@ def calculate_file_md5(f_path):
     return md5_hash.hexdigest()
 
 
-def received_broadcasting_client_data(c_socket):
-    received_client_info = c_socket.recv(1024).decode()
-    print(received_client_info)
-    matches = re.findall(r'\((\d+\.\d+\.\d+\.\d+), (\d+)\)', received_client_info)
-    for match in matches:
-        ip_addr = match[0]
-        port_num = int(match[1])
-        connected_client_ip_list.append(ip_addr)
-        connected_client_port_list.append(port_num)
+def connect_between_clients(c_ip, c_port):
+    if c_ip != client_ip and c_port != client_port:
+        time.sleep(1)
+        connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        connected_socket.connect((c_ip, c_port))
+        print(connected_socket)
+        connected_s_client_socket_list.append(connected_socket)
+    print(connected_s_client_socket_list)
 
 
 def send_data(c_socket, f_path):
@@ -66,16 +76,6 @@ def received_data(c_socket, f_path):
                 print(type(data))
             except socket.timeout:
                 break
-
-
-def connect_between_clients(c_ip, c_port):
-    if c_ip != client_ip and c_port != client_port:
-        time.sleep(1)
-        connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        connected_socket.connect((c_ip, c_port))
-        print(connected_socket)
-        connected_s_client_socket_list.append(connected_socket)
-    print(connected_s_client_socket_list)
 
 
 if __name__ == "__main__":

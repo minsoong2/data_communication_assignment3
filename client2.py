@@ -43,6 +43,16 @@ def calculate_file_md5(f_path):
     return md5_hash.hexdigest()
 
 
+def connect_between_clients(c_ip, c_port):
+    if c_ip != client_ip and c_port != client_port:
+        time.sleep(1)
+        connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        connected_socket.connect((c_ip, c_port))
+        print(connected_socket)
+        connected_s_client_socket_list.append(connected_socket)
+    print(connected_s_client_socket_list)
+
+
 def send_data(c_socket, f_path):
 
     with open(f_path, 'rb') as file:
@@ -67,16 +77,6 @@ def received_data(c_socket, f_path):
                 print(type(data))
             except socket.timeout:
                 break
-
-
-def connect_between_clients(c_ip, c_port):
-    if c_ip != client_ip and c_port != client_port:
-        time.sleep(1)
-        connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        connected_socket.connect((c_ip, c_port))
-        print(connected_socket)
-        connected_s_client_socket_list.append(connected_socket)
-    print(connected_s_client_socket_list)
 
 
 if __name__ == "__main__":
@@ -135,7 +135,6 @@ if __name__ == "__main__":
         for st, rt in zip(c2_send_threads, c2_receive_threads):
             rt.join()
             st.join()
-
 
     except ConnectionResetError:
         msg = f"Client {client_socket.getsockname()[1]}: Connection was forcibly closed."
