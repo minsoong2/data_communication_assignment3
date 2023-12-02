@@ -134,6 +134,8 @@ if __name__ == "__main__":
             rt.join()
             st.join()
 
+        client_socket.send("Transmission complete.".encode())
+
     except ConnectionResetError:
         msg = f"Client {client_socket.getsockname()[1]}: Connection was forcibly closed."
         print(msg)
