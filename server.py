@@ -6,15 +6,17 @@ from _datetime import datetime
 
 ip = '127.0.0.1'
 port = 8888
+
 system_clock = 0
+start_time, end_time = 0, 0
+
 MAX_CLIENTS = 4
 chunk_size = 256 * 1024
 client_sockets = []
 client_ips = []
 client_ports = []
-start_time, end_time = 0, 0
-
 connected_client_list = []
+
 c1_md5_list, c2_md5_list, c3_md5_list, c4_md5_list = [], [], [], []
 c1_chunk_list, c2_chunk_list, c3_chunk_list, c4_chunk_list = [], [], [], []
 
