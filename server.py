@@ -2,6 +2,7 @@ import socket
 import re
 import threading
 import time
+import pickle
 from _datetime import datetime
 
 ip = '127.0.0.1'
@@ -18,7 +19,6 @@ client_ports = []
 connected_client_list = []
 
 c1_md5_list, c2_md5_list, c3_md5_list, c4_md5_list = [], [], [], []
-c1_chunk_list, c2_chunk_list, c3_chunk_list, c4_chunk_list = [], [], [], []
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -131,6 +131,22 @@ def broadcast_md5_info(cs):
     cs.send(msg.encode())
 
 
+def receive_chunk_info(cs):
+    global system_clock
+    current_time = time.time() * 1000
+    time_difference = current_time - system_clock
+    system_clock += time_difference
+    formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
+    microsecond = int((system_clock % 1000) * 1000)
+    formatted_time += f".{microsecond:06d}"
+
+    while True:
+        chunk_len_data = cs.recv(1024).decode()
+        if not chunk_len_data:
+            break
+        print(chunk_len_data)
+
+
 def main():
     global system_clock, start_time, end_time
     current_time = time.time() * 1000
@@ -169,15 +185,24 @@ def main():
     for t in broadcast_md5_info_threads:
         t.join()
 
+    chunk_info_threads = []
     for cs in client_sockets:
-        complete_msg = cs.recv(1024).decode()
+        server_thread = threading.Thread(target=receive_chunk_info, args=(cs,))
+        server_thread.start()
+        chunk_info_threads.append(server_thread)
+
+    for t in chunk_info_threads:
+        t.join()
+
+    for cs in client_sockets:
         current_time = time.time() * 1000
         time_difference = current_time - system_clock
         system_clock += time_difference
         formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
         microsecond = int((system_clock % 1000) * 1000)
         formatted_time += f".{microsecond:06d}"
-        print(f"{formatted_time}: {cs} - {complete_msg}")
+        complete_msg = cs.recv(1024).decode()
+        print(f"{formatted_time}: {cs} {complete_msg}")
 
     end_time = formatted_time
     print(f"End time: {formatted_time}")

@@ -104,17 +104,18 @@ def send_data(c_socket, f_path):
 def received_data(c_socket, f_path):
 
     global system_clock
-    current_time = time.time() * 1000
-    time_difference = current_time - system_clock
-    system_clock += time_difference
-    formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-    microsecond = int((system_clock % 1000) * 1000)
-    formatted_time += f".{microsecond:06d}"
-
     c_socket.settimeout(1.0)
 
     with open(f_path, 'wb') as file:
         while True:
+
+            current_time = time.time() * 1000
+            time_difference = current_time - system_clock
+            system_clock += time_difference
+            formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
+            microsecond = int((system_clock % 1000) * 1000)
+            formatted_time += f".{microsecond:06d}"
+
             try:
                 data = c_socket.recv(chunk_size)
                 if data == b'':
@@ -127,6 +128,10 @@ def received_data(c_socket, f_path):
                     having_chunk_list2.append(data)
                 elif "received_new3" in f_path:
                     having_chunk_list3.append(data)
+
+                chunk_list1_len, chunk_list2_len, chunk_list3_len = len(having_chunk_list1), len(having_chunk_list2), len(having_chunk_list3)
+                chunk_list_len = f"{formatted_time}: client3 md5 - {having_md5_list[0]}, chunk_list1_len: {chunk_list1_len}, chunk_list2_len: {chunk_list2_len}, chunk_list3_len: {chunk_list3_len}"
+                client_socket.send(chunk_list_len.encode())
 
                 print(f"{formatted_time}: received data")
             except socket.timeout:
