@@ -83,7 +83,7 @@ def broadcast_connect_4clients(cs):
     time_difference = current_time - system_clock
     system_clock += time_difference
     formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-    microsecond = int((system_clock % 1000) * 1000)  # Extract microsecond part
+    microsecond = int((system_clock % 1000) * 1000)
     formatted_time += f".{microsecond:06d}"
     print(f"{formatted_time}: Sent client list to {cs}")
 
@@ -100,7 +100,7 @@ def receive_and_store_md5_data(cs):
     time_difference = current_time - system_clock
     system_clock += time_difference
     formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-    microsecond = int((system_clock % 1000) * 1000)  # Extract microsecond part
+    microsecond = int((system_clock % 1000) * 1000)
     formatted_time += f".{microsecond:06d}"
     print(f"{formatted_time}: Received client info {client_info}: {c_md5}")
 
@@ -120,7 +120,7 @@ def broadcast_md5_info(cs):
     time_difference = current_time - system_clock
     system_clock += time_difference
     formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-    microsecond = int((system_clock % 1000) * 1000)  # Extract microsecond part
+    microsecond = int((system_clock % 1000) * 1000)
     formatted_time += f".{microsecond:06d}"
 
     msg = f"Client ({client_ips[0]}, {client_ports[0]}) {c1_md5_list} " \
@@ -137,7 +137,7 @@ def main():
     time_difference = current_time - system_clock
     system_clock += time_difference
     formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-    microsecond = int((system_clock % 1000) * 1000)  # Extract microsecond part
+    microsecond = int((system_clock % 1000) * 1000)
     formatted_time += f".{microsecond:06d}"
 
     accept_4clients_connection()
@@ -171,11 +171,11 @@ def main():
 
     for cs in client_sockets:
         complete_msg = cs.recv(1024).decode()
-        current_time = time.time() * 1000  # 현재 시간을 밀리초로 변환
+        current_time = time.time() * 1000
         time_difference = current_time - system_clock
         system_clock += time_difference
         formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-        microsecond = int((system_clock % 1000) * 1000)  # Extract microsecond part
+        microsecond = int((system_clock % 1000) * 1000)
         formatted_time += f".{microsecond:06d}"
         print(f"{formatted_time}: {cs} - {complete_msg}")
 

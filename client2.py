@@ -187,7 +187,6 @@ def main():
         for _ in range(3):
             new_client_socket, new_client_address = c2_socket.accept()
             connected_r_client_socket_list.append(new_client_socket)
-            # f.write(accept + '\n')
 
         c2_send_threads, c2_receive_threads = [], []
         for cs in connected_s_client_socket_list:
