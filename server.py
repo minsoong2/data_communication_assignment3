@@ -187,6 +187,8 @@ def main():
     total_time = end_datetime - start_datetime
     print(f"Total time: {total_time}")
 
+    server.close()
+
 
 if __name__ == "__main__":
     main()
