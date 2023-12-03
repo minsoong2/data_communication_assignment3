@@ -231,6 +231,11 @@ def main():
         md5_results = calculate_md5_for_files_in_directory(download_file_path)
         for file_name, md5_value in md5_results.items():
             print(f"{file_name}: {md5_value}")
+            having_md5_list.append(md5_value)
+
+        having_md5_info = f"{formatted_time}: client4 md5 - {having_md5_list[0]}, {having_md5_list[1]}, {having_md5_list[2]}, {having_md5_list[3]}"
+        print(having_md5_info)
+        client_socket.send(having_md5_info.encode())
 
     except ConnectionResetError:
         msg = f"Client {client_socket.getsockname()[1]}: Connection was forcibly closed."

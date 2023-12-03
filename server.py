@@ -202,7 +202,17 @@ def main():
         microsecond = int((system_clock % 1000) * 1000)
         formatted_time += f".{microsecond:06d}"
         complete_msg = cs.recv(1024).decode()
-        print(f"{formatted_time}: {cs} {complete_msg}")
+        print(complete_msg)
+
+    for cs in client_sockets:
+        current_time = time.time() * 1000
+        time_difference = current_time - system_clock
+        system_clock += time_difference
+        formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
+        microsecond = int((system_clock % 1000) * 1000)
+        formatted_time += f".{microsecond:06d}"
+        client_md_info = cs.recv(1024).decode()
+        print(client_md_info)
 
     end_time = formatted_time
     print(f"End time: {formatted_time}")
