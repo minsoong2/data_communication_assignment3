@@ -97,8 +97,8 @@ def send_data(c_socket, f_path, f):
     with open(f_path, 'rb') as file:
         while True:
             chunk = file.read(chunk_size)
-            print(f"{formatted_time}: send chunk")
-            f.write(f"{formatted_time}: send chunk" + '\n')
+            print(f"{formatted_time}: client1 sends chunk")
+            f.write(f"{formatted_time}: client1 sends chunk" + '\n')
             if chunk == b'':
                 break
             c_socket.send(chunk)
@@ -154,7 +154,7 @@ def calculate_md5_for_files_in_directory(directory):
 
 
 def main():
-    with open(f"client1.txt", "w", encoding='utf-8') as client_f:
+    with open("client1.txt", "w", encoding='utf-8') as client_f:
         global system_clock, start_time, end_time
 
         current_time = time.time() * 1000

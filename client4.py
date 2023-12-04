@@ -97,8 +97,8 @@ def send_data(c_socket, f_path, f):
     with open(f_path, 'rb') as file:
         while True:
             chunk = file.read(chunk_size)
-            print(f"{formatted_time}: send chunk")
-            f.write(f"{formatted_time}: send chunk" + '\n')
+            print(f"{formatted_time}: client4 sends chunk")
+            f.write(f"{formatted_time}: client4 sends chunk" + '\n')
             if chunk == b'':
                 break
             c_socket.send(chunk)
@@ -133,7 +133,7 @@ def received_data(c_socket, f_path, f):
                     having_chunk_list3.append(data)
 
                 chunk_list1_len, chunk_list2_len, chunk_list3_len = len(having_chunk_list1), len(having_chunk_list2), len(having_chunk_list3)
-                chunk_list_len = f"{formatted_time}: client1 md5 - {having_md5_list[0]}, chunk_list1_len: {chunk_list1_len}, chunk_list2_len: {chunk_list2_len}, chunk_list3_len: {chunk_list3_len}"
+                chunk_list_len = f"{formatted_time}: client4 md5 - {having_md5_list[0]}, chunk_list1_len: {chunk_list1_len}, chunk_list2_len: {chunk_list2_len}, chunk_list3_len: {chunk_list3_len}"
                 client_socket.send(chunk_list_len.encode())
                 f.write(chunk_list_len + '\n')
 
@@ -154,7 +154,7 @@ def calculate_md5_for_files_in_directory(directory):
 
 
 def main():
-    with open(f"client4.txt", "w", encoding='utf-8') as client_f:
+    with open("client4.txt", "w", encoding='utf-8') as client_f:
         global system_clock, start_time, end_time
 
         current_time = time.time() * 1000
