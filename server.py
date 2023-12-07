@@ -4,7 +4,7 @@ import threading
 import time
 from _datetime import datetime
 
-ip = '127.0.0.1'
+ip = 'ec2-3-38-191-66.ap-northeast-2.compute.amazonaws.com'
 port = 8888
 
 system_clock = 0
@@ -26,7 +26,6 @@ server.listen(4)
 
 
 def accept_4clients_connection(f):
-
     global system_clock, start_time
     client_accept_cnt = 0
     current_time = time.time() * 1000
@@ -61,9 +60,10 @@ def accept_4clients_connection(f):
         client_sockets.append(client_socket)
         client_accept_cnt += 1
         received_client_info = client_socket.recv(1024).decode()
-        match = re.search(r'\((\d+\.\d+\.\d+\.\d+), (\d+)\)', received_client_info)
+        match = re.findall(r'\(([^,]+), (\d+)\)', received_client_info)
+        print(match)
         if match:
-            ip_addr, port_num = match.group(1), match.group(2)
+            ip_addr, port_num = match[0][0], match[0][1]
             client_info = f"Client ({ip_addr}, {port_num})"
             client_ips.append(ip_addr)
             client_ports.append(port_num)
@@ -130,7 +130,7 @@ def broadcast_md5_info(cs, f):
           f"Client ({client_ips[1]}, {client_ports[1]}) {c2_md5_list} " \
           f"Client ({client_ips[2]}, {client_ports[2]}) {c3_md5_list} " \
           f"Client ({client_ips[3]}, {client_ports[3]}) {c4_md5_list}"
-    print(f"{formatted_time}: Send client info -> {msg}")
+
     f.write(f"{formatted_time}: Send client info -> {msg}" + '\n')
     cs.send(msg.encode())
 
@@ -148,7 +148,6 @@ def receive_chunk_info(cs, f):
         chunk_len_data = cs.recv(1024).decode()
         if not chunk_len_data:
             break
-        print(chunk_len_data)
         f.write(chunk_len_data + '\n')
 
 
@@ -167,8 +166,9 @@ def receive_complete_info(cs, f):
 
 
 def main():
+    global system_clock, start_time, end_time
+
     with open('server.txt', 'w', encoding='utf-8') as server_f:
-        global system_clock, start_time, end_time
         current_time = time.time() * 1000
         time_difference = current_time - system_clock
         system_clock += time_difference
@@ -244,6 +244,9 @@ def main():
         total_time = end_datetime - start_datetime
         print(f"Total time: {total_time}")
         server_f.write(f"Total time: {total_time}" + '\n')
+
+        for cs in client_sockets:
+            cs.close()
 
         server.close()
         print("server closed...")

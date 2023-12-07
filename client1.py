@@ -6,17 +6,17 @@ import threading
 import os
 from _datetime import datetime
 
-server_ip = '127.0.0.1'
+server_ip = 'ec2-3-38-191-66.ap-northeast-2.compute.amazonaws.com'
 server_port = 8888
 
-client_ip = '127.0.0.2'
+client_ip = '3.38.191.66'
 client_port = 5001
 
 system_clock = 0
 start_time, end_time = 0, 0
 
 chunk_size = 256 * 1024
-file_path = r'C:\Users\minsoo\Downloads\file\client1\A.file'
+file_path = r'/home/ubuntu/client1/A.file'
 file_collection = []
 
 connected_s_client_socket_list = []
@@ -31,6 +31,7 @@ having_chunk_list3 = []
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((server_ip, server_port))
+c1_send_threads, c1_receive_threads = [], []
 
 
 def received_broadcasting_client_data(c_socket, f):
@@ -74,13 +75,15 @@ def connect_between_clients(c_ip, c_port, f):
     microsecond = int((system_clock % 1000) * 1000)
     formatted_time += f".{microsecond:06d}"
 
-    if c_ip != client_ip and c_port != client_port:
+    if c_port != client_port:
         time.sleep(1)
         connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         connected_socket.connect((c_ip, c_port))
         print(f"{formatted_time}: connect -> {connected_socket}")
-        connected_s_client_socket_list.append(connected_socket)
         f.write(f"{formatted_time}: connect -> {connected_socket}" + '\n')
+        c1_s_thread = threading.Thread(target=send_data, args=(connected_socket, file_path, f))
+        c1_s_thread.start()
+        c1_send_threads.append(c1_s_thread)
     print(connected_s_client_socket_list)
 
 
@@ -93,15 +96,17 @@ def send_data(c_socket, f_path, f):
     formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
     microsecond = int((system_clock % 1000) * 1000)
     formatted_time += f".{microsecond:06d}"
-
+    cnt = 0
     with open(f_path, 'rb') as file:
         while True:
+            time.sleep(0.3)
+            cnt += 1
             chunk = file.read(chunk_size)
-            print(f"{formatted_time}: client1 sends chunk")
+            print(f"{formatted_time}: {cnt} client1 sends chunk")
             f.write(f"{formatted_time}: client1 sends chunk" + '\n')
             if chunk == b'':
                 break
-            c_socket.send(chunk)
+            c_socket.sendall(chunk)
 
 
 def received_data(c_socket, f_path, f):
@@ -120,6 +125,7 @@ def received_data(c_socket, f_path, f):
             formatted_time += f".{microsecond:06d}"
 
             try:
+                time.sleep(0.3)
                 data = c_socket.recv(chunk_size)
                 if data == b'':
                     break
@@ -132,12 +138,12 @@ def received_data(c_socket, f_path, f):
                 elif "received_new3" in f_path:
                     having_chunk_list3.append(data)
 
-                chunk_list1_len, chunk_list2_len, chunk_list3_len = len(having_chunk_list1), len(having_chunk_list2), len(having_chunk_list3)
+                chunk_list1_len, chunk_list2_len, chunk_list3_len = len(having_chunk_list1), len(
+                    having_chunk_list2), len(having_chunk_list3)
                 chunk_list_len = f"{formatted_time}: client1 md5 - {having_md5_list[0]}, chunk_list1_len: {chunk_list1_len}, chunk_list2_len: {chunk_list2_len}, chunk_list3_len: {chunk_list3_len}"
                 client_socket.send(chunk_list_len.encode())
                 f.write(chunk_list_len + '\n')
 
-                print(f"{formatted_time}: received data")
                 f.write(f"{formatted_time}: received data" + '\n')
             except socket.timeout:
                 break
@@ -199,35 +205,22 @@ def main():
         try:
 
             c1_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            c1_socket.bind((client_ip, client_port))
+            c1_socket.bind(('0.0.0.0', client_port))
             c1_socket.listen(3)
 
             pattern = r"\((\d+\.\d+\.\d+\.\d+), (\d+)\) \['([a-fA-F0-9]+)'\]"
             matches = re.findall(pattern, received_md5_info)
-            for match in matches:
+            for idx, match in enumerate(matches):
                 ip_addr, port_num, md5_value = match[0], int(match[1]), match[2]
                 if client_ip == ip_addr and client_port == port_num:
                     continue
                 elif md5_value != md5:
                     connect_between_clients(ip_addr, port_num, client_f)
-
-            for _ in range(3):
                 new_client_socket, new_client_address = c1_socket.accept()
-                connected_r_client_socket_list.append(new_client_socket)
-
-            c1_send_threads, c1_receive_threads = [], []
-            for cs in connected_s_client_socket_list:
-                c1_s_thread = threading.Thread(target=send_data, args=(cs, file_path, client_f))
-                c1_send_threads.append(c1_s_thread)
-
-            for idx, cs in enumerate(connected_r_client_socket_list):
-                save_file_path = rf'C:\Users\minsoo\Downloads\file\client1\received_new{idx + 1}.file'
-                c1_r_thread = threading.Thread(target=received_data, args=(cs, save_file_path, client_f))
+                save_file_path = rf'/home/ubuntu/client1/received_new{idx + 1}.file'
+                c1_r_thread = threading.Thread(target=received_data, args=(new_client_socket, save_file_path, client_f))
+                c1_r_thread.start()
                 c1_receive_threads.append(c1_r_thread)
-
-            for st, rt in zip(c1_send_threads, c1_receive_threads):
-                st.start()
-                rt.start()
 
             for st, rt in zip(c1_send_threads, c1_receive_threads):
                 st.join()
@@ -253,7 +246,7 @@ def main():
             print(f"Total time: {total_time}")
             client_f.write(f"Total time: {total_time}" + '\n')
 
-            download_file_path = r'C:\Users\minsoo\Downloads\file\client1'
+            download_file_path = r'/home/ubuntu/client1'
             md5_results = calculate_md5_for_files_in_directory(download_file_path)
             for file_name, md5_value in md5_results.items():
                 print(f"{file_name}: {md5_value}")
@@ -273,6 +266,11 @@ def main():
         finally:
             msg = f"Client 1: Connection closed"
             print(msg)
+            for cs in connected_s_client_socket_list:
+                cs.close()
+            for cs in connected_r_client_socket_list:
+                cs.close()
+            c1_socket.close()
             client_socket.close()
 
 
