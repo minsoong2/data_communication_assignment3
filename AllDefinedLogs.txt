@@ -1,0 +1,72 @@
+[Server.py]
+
+* accept_4clients_connection()
+- f"Start time: {formatted_time}"
+ - 서버가 시작된 시간을 Log로 작성
+- f"{formatted_time}: {listen}"
+ - 서버가 클라이언트의 연결을 수신하기 시작하면 Log로 작성
+- f"{formatted_time}: {accept}"
+ - 클라이언트가 서버에 연결되었을 때 Log로 작성
+
+* broadcast_connect_4clients()
+- f"{formatted_time}: Send client list to {cs}"
+ - 서버가 현재 연결된 클라이언트 목록을 해당 클라이언트에게 브로드캐스팅하는 것을 Log로 작성
+
+* receive_and_store_md5_data()
+- f"{formatted_time}: Received client info {client_info}: {c_md5}"
+ - 서버가 클라이언트로부터 수신한 클라이언트 정보와 해당 클라이언트의 파일 MD5 해시 값을 Log로 작성
+
+* broadcast_md5_info()
+- f"{formatted_time}: Send client info -> {msg}"
+ - 서버가 클라이언트 각각의 MD5 해시 값을 브로드캐스팅할때 Log로 작성
+
+* receive_chunk_info()
+- chunk_len_data
+ - 서버가 각 클라이언트로부터 수신한 청크 정보를 Log로 작성
+
+* receive_complete_info()
+- complete_msg
+ - 서버가 클라이언트로부터 수신한 파일 전송 완료 메시지를 Log로 작성
+
+* main()
+- f"End time: {formatted_time}"
+ - 프로그램의 종료 전 시간을 Log에 작성
+- f"Total time: {total_time}"
+ - 프로그램의 종료 전 총 걸린 시간을 Log에 작성
+- "Server closed..."
+ - 서버 프로그램이 종료되는 것을 Log에 작성
+
+[client1.py]
+#client2.py, client3.py, client4.py 모두 같은 종류의 Log 작성
+
+* received_broadcasting_client_data()
+- f"{formatted_time}: received_client_info -> {received_client_info}"
+ - 클라이언트로부터 받은 ip와 포트 정보를 Log로 작성
+
+* connect_between_clients()
+- "{formatted_time}: connect -> {connected_socket}"
+ - 현재 클라이언트와 다른 클라이언트 간의 연결을 Log로 작성
+
+* send_data()
+- "{formatted_time}: client1 sends chunk"
+ - 클라이언트에서 다른 클라이언트로 데이터 청크를 전송하면 Log로 작성
+
+* received_data()
+- "{formatted_time}: received data"
+ - 클라이언트에서 다른 클라이언트로부터 데이터 청크가 수신되었을 때 Log로 작성
+
+* main()
+- "{formatted_time}: Client 1 Connected to the server"
+ - 클라이언트가 서버와 연결이 됐을때 Log로 작성 
+- "{formatted_time}: client_info, md5 -> server {client_info_md5_data}"
+ - 클라이언트가 서버에게 자신의 정보와 MD5 해시 값을 보내기 전 내용을 Log로 작성
+- "{formatted_time}: client_info, md5 -> {received_md5_info}"
+ - 클라이언트가 서버로부터 다른 클라이언트들의 정보와 각 파일의 MD5 해시 값을 수신한 후 Log로 작성
+- "{formatted_time}: Transmission complete"
+ - 파일 전송이 완료되면 Log로 작성
+- "{formatted_time}: End time: {formatted_time}"
+ - 전송이 완료된 시간을 Log로 작성
+- "{formatted_time}: Total time: {total_time}"
+ - 클라이언트 코드가 실행된 총 시간을 Log로 작성
+- "{formatted_time}: client1 md5 - {having_md5_list[0]}, {having_md5_list[1]}, {having_md5_list[2]}, {having_md5_list[3]}"
+ - 클라이언트가 보유한 각 파일의 MD5 해시 값을 Log로 작성
