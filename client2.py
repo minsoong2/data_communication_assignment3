@@ -6,20 +6,25 @@ import threading
 import os
 from _datetime import datetime
 
-server_ip = 'ec2-3-38-191-66.ap-northeast-2.compute.amazonaws.com'
+# server_ip = 'ec2-3-38-191-66.ap-northeast-2.compute.amazonaws.com'
+# server_port = 8888
+# client_ip = '3.38.191.66'
+# client_port = 5002
+
+server_ip = '127.0.0.1'
 server_port = 8888
 
-client_ip = '3.38.191.66'
+client_ip = '127.0.0.3'
 client_port = 5002
 
 system_clock = 0
 start_time, end_time = 0, 0
+formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
 
 chunk_size = 256 * 1024
-file_path = r'/home/ubuntu/client2/B.file'
+file_path = r'C:\Users\minsoo\OneDrive - 창원대학교\바탕 화면\Data Communication\HW3\file\client2\B.file'
 file_collection = []
-connected_s_client_socket_list = []
-connected_r_client_socket_list = []
+
 connected_client_ip_list = []
 connected_client_port_list = []
 
@@ -33,8 +38,9 @@ client_socket.connect((server_ip, server_port))
 c2_send_threads, c2_receive_threads = [], []
 
 
-def received_broadcasting_client_data(c_socket, f):
-    global system_clock
+def time_update():
+    global system_clock, formatted_time
+
     current_time = time.time() * 1000
     time_difference = current_time - system_clock
     system_clock += time_difference
@@ -42,9 +48,18 @@ def received_broadcasting_client_data(c_socket, f):
     microsecond = int((system_clock % 1000) * 1000)
     formatted_time += f".{microsecond:06d}"
 
+    return formatted_time
+
+
+def received_broadcasting_client_data(c_socket, f):
+    global system_clock, formatted_time
+
+    formatted_time = time_update()
+
     received_client_info = c_socket.recv(1024).decode()
     print(f"{formatted_time}: received_client_info -> {received_client_info}")
     f.write(f"{formatted_time}: received_client_info -> {received_client_info}" + '\n')
+
     matches = re.findall(r'\((\d+\.\d+\.\d+\.\d+), (\d+)\)', received_client_info)
     for match in matches:
         ip_addr = match[0]
@@ -64,41 +79,30 @@ def calculate_file_md5(f_path):
 
 
 def connect_between_clients(c_ip, c_port, f):
-    global system_clock
-    current_time = time.time() * 1000
-    time_difference = current_time - system_clock
-    system_clock += time_difference
-    formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-    microsecond = int((system_clock % 1000) * 1000)
-    formatted_time += f".{microsecond:06d}"
+    global system_clock, formatted_time
+
+    formatted_time = time_update()
 
     if c_port != client_port:
         time.sleep(1)
         connected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         connected_socket.connect((c_ip, c_port))
         print(f"{formatted_time}: connect -> {connected_socket}")
-        connected_s_client_socket_list.append(connected_socket)
         f.write(f"{formatted_time}: connect -> {connected_socket}" + '\n')
+
         c2_s_thread = threading.Thread(target=send_data, args=(connected_socket, file_path, f))
         c2_s_thread.start()
         c2_send_threads.append(c2_s_thread)
-    print(connected_s_client_socket_list)
 
 
 def send_data(c_socket, f_path, f):
-    global system_clock
+    global system_clock, formatted_time
     cnt = 0
 
     with open(f_path, 'rb') as file:
         while True:
-            current_time = time.time() * 1000
-            time_difference = current_time - system_clock
-            system_clock += time_difference
-            formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-            microsecond = int((system_clock % 1000) * 1000)
-            formatted_time += f".{microsecond:06d}"
-
             time.sleep(0.3)
+            formatted_time = time_update()
             cnt += 1
             chunk = file.read(chunk_size)
             print(f"{formatted_time}: {cnt} client2 sends chunk")
@@ -109,19 +113,14 @@ def send_data(c_socket, f_path, f):
 
 
 def received_data(c_socket, f_path, f):
-    global system_clock
+    global system_clock, formatted_time
 
     c_socket.settimeout(1.0)
 
     with open(f_path, 'wb') as file:
         while True:
 
-            current_time = time.time() * 1000
-            time_difference = current_time - system_clock
-            system_clock += time_difference
-            formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-            microsecond = int((system_clock % 1000) * 1000)
-            formatted_time += f".{microsecond:06d}"
+            formatted_time = time_update()
 
             try:
                 time.sleep(0.3)
@@ -137,37 +136,34 @@ def received_data(c_socket, f_path, f):
                 elif "received_new3" in f_path:
                     having_chunk_list3.append(data)
 
-                chunk_list1_len, chunk_list2_len, chunk_list3_len = len(having_chunk_list1), len(
-                    having_chunk_list2), len(having_chunk_list3)
+                chunk_list1_len, chunk_list2_len, chunk_list3_len = len(having_chunk_list1), len(having_chunk_list2), len(having_chunk_list3)
                 chunk_list_len = f"{formatted_time}: client2 md5 - {having_md5_list[0]}, chunk_list1_len: {chunk_list1_len}, chunk_list2_len: {chunk_list2_len}, chunk_list3_len: {chunk_list3_len}"
                 client_socket.send(chunk_list_len.encode())
                 f.write(chunk_list_len + '\n')
-
                 f.write(f"{formatted_time}: received data" + '\n')
+
             except socket.timeout:
                 break
 
 
 def calculate_md5_for_files_in_directory(directory):
     md5_dict = {}
+
     for file_name in os.listdir(directory):
         if file_name.endswith(".file"):
             f_path = os.path.join(directory, file_name)
             md5_value = calculate_file_md5(f_path)
             md5_dict[file_name] = md5_value
+
     return md5_dict
 
 
 def main():
-    with open("client2.txt", "w", encoding='utf-8') as client_f:
-        global system_clock, start_time, end_time
+    global system_clock, start_time, end_time, formatted_time
 
-        current_time = time.time() * 1000
-        time_difference = current_time - system_clock
-        system_clock += time_difference
-        formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-        microsecond = int((system_clock % 1000) * 1000)
-        formatted_time += f".{microsecond:06d}"
+    with open("client2.txt", "w", encoding='utf-8') as client_f:
+
+        formatted_time = time_update()
         start_time = formatted_time
 
         client_info = f"Client ({client_ip}, {client_port})"
@@ -181,28 +177,17 @@ def main():
         having_md5_list.append(md5)
         client_info_md5_data = f"Client ({client_ip}, {client_port}) {md5}"
 
-        current_time = time.time() * 1000
-        time_difference = current_time - system_clock
-        system_clock += time_difference
-        formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-        microsecond = int((system_clock % 1000) * 1000)
-        formatted_time += f".{microsecond:06d}"
+        formatted_time = time_update()
         print(f"{formatted_time}: client_info, md5 -> server {client_info_md5_data}" + '\n')
         client_socket.send(client_info_md5_data.encode())
         client_f.write(f"{formatted_time}: client_info, md5 -> server {client_info_md5_data}" + '\n')
 
-        current_time = time.time() * 1000
-        time_difference = current_time - system_clock
-        system_clock += time_difference
-        formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-        microsecond = int((system_clock % 1000) * 1000)
-        formatted_time += f".{microsecond:06d}"
+        formatted_time = time_update()
         received_md5_info = client_socket.recv(1024).decode()
         print(f"{formatted_time}: client_info, md5 -> {received_md5_info}")
         client_f.write(f"{formatted_time}: client_info, md5 -> {received_md5_info}" + '\n')
 
         try:
-
             c2_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             c2_socket.bind(('0.0.0.0', client_port))
             c2_socket.listen(3)
@@ -216,7 +201,7 @@ def main():
                 elif md5_value != md5:
                     connect_between_clients(ip_addr, port_num, client_f)
                 new_client_socket, new_client_address = c2_socket.accept()
-                save_file_path = rf'/home/ubuntu/client2/received_new{idx + 1}.file'
+                save_file_path = rf'C:\Users\minsoo\OneDrive - 창원대학교\바탕 화면\Data Communication\HW3\file\client2\received_new{idx + 1}.file'
                 c2_r_thread = threading.Thread(target=received_data, args=(new_client_socket, save_file_path, client_f))
                 c2_r_thread.start()
                 c2_receive_threads.append(c2_r_thread)
@@ -225,12 +210,7 @@ def main():
                 st.join()
                 rt.join()
 
-            current_time = time.time() * 1000
-            time_difference = current_time - system_clock
-            system_clock += time_difference
-            formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-            microsecond = int((system_clock % 1000) * 1000)
-            formatted_time += f".{microsecond:06d}"
+            formatted_time = time_update()
             end_time = formatted_time
             print(f"End time: {formatted_time}")
             client_f.write(f"End time: {formatted_time}" + '\n')
@@ -245,7 +225,7 @@ def main():
             print(f"Total time: {total_time}")
             client_f.write(f"Total time: {total_time}" + '\n')
 
-            download_file_path = r'/home/ubuntu/client2'
+            download_file_path = r'C:\Users\minsoo\OneDrive - 창원대학교\바탕 화면\Data Communication\HW3\file\client2'
             md5_results = calculate_md5_for_files_in_directory(download_file_path)
             for file_name, md5_value in md5_results.items():
                 print(f"{file_name}: {md5_value}")
@@ -265,10 +245,6 @@ def main():
         finally:
             msg = f"Client 2: Connection closed"
             print(msg)
-            for cs in connected_s_client_socket_list:
-                cs.close()
-            for cs in connected_r_client_socket_list:
-                cs.close()
             c2_socket.close()
             client_socket.close()
 

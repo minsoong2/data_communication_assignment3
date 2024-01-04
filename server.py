@@ -4,11 +4,15 @@ import threading
 import time
 from _datetime import datetime
 
-ip = 'ec2-3-38-191-66.ap-northeast-2.compute.amazonaws.com'
+# ip = 'ec2-3-38-191-66.ap-northeast-2.compute.amazonaws.com'
+# port = 8888
+
+ip = '127.0.0.1'
 port = 8888
 
 system_clock = 0
 start_time, end_time = 0, 0
+formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
 
 MAX_CLIENTS = 4
 chunk_size = 256 * 1024
@@ -25,15 +29,24 @@ server.bind((ip, port))
 server.listen(4)
 
 
-def accept_4clients_connection(f):
-    global system_clock, start_time
-    client_accept_cnt = 0
+def time_update():
+    global system_clock, formatted_time
+
     current_time = time.time() * 1000
     time_difference = current_time - system_clock
     system_clock += time_difference
     formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
     microsecond = int((system_clock % 1000) * 1000)
     formatted_time += f".{microsecond:06d}"
+
+    return formatted_time
+
+
+def accept_4clients_connection(f):
+    global system_clock, start_time, formatted_time
+    client_accept_cnt = 0
+
+    formatted_time = time_update()
 
     if client_accept_cnt == 0:
         start_time = formatted_time
@@ -48,12 +61,7 @@ def accept_4clients_connection(f):
         client_socket, client_address = server.accept()
         accept = f"Accepted connection from {client_address}"
 
-        current_time = time.time() * 1000
-        time_difference = current_time - system_clock
-        system_clock += time_difference
-        formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-        microsecond = int((system_clock % 1000) * 1000)
-        formatted_time += f".{microsecond:06d}"
+        formatted_time = time_update()
         print(f"{formatted_time}: {accept}")
         f.write(f"{formatted_time}: {accept}" + '\n')
 
@@ -71,7 +79,7 @@ def accept_4clients_connection(f):
 
 
 def broadcast_connect_4clients(cs, f):
-    global system_clock
+    global system_clock, formatted_time
     broadcast_client_list = []
 
     for c_ip, c_port in zip(client_ips, client_ports):
@@ -80,30 +88,21 @@ def broadcast_connect_4clients(cs, f):
     send_msg = ' '.join(broadcast_client_list)
     cs.send(send_msg.encode())
 
-    current_time = time.time() * 1000
-    time_difference = current_time - system_clock
-    system_clock += time_difference
-    formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-    microsecond = int((system_clock % 1000) * 1000)
-    formatted_time += f".{microsecond:06d}"
+    formatted_time = time_update()
     print(f"{formatted_time}: Send client list to {cs}")
     f.write(f"{formatted_time}: Send client list to {cs}" + '\n')
 
 
 def receive_and_store_md5_data(cs, f):
-    global system_clock
+    global system_clock, formatted_time
+
     client_info_md5_data = cs.recv(1024).decode()
     match = re.search(r'\((\d+\.\d+\.\d+\.\d+), (\d+)\) \b([a-fA-F0-9]{32})\b', client_info_md5_data)
     ip_addr, port_num = match.group(1), match.group(2)
     client_info = f"Client ({ip_addr}, {port_num})"
     c_md5 = match.group(3)
 
-    current_time = time.time() * 1000
-    time_difference = current_time - system_clock
-    system_clock += time_difference
-    formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-    microsecond = int((system_clock % 1000) * 1000)
-    formatted_time += f".{microsecond:06d}"
+    formatted_time = time_update()
     print(f"{formatted_time}: Received client info {client_info}: {c_md5}")
     f.write(f"{formatted_time}: Received client info {client_info}: {c_md5}" + '\n')
 
@@ -118,13 +117,9 @@ def receive_and_store_md5_data(cs, f):
 
 
 def broadcast_md5_info(cs, f):
-    global system_clock
-    current_time = time.time() * 1000
-    time_difference = current_time - system_clock
-    system_clock += time_difference
-    formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-    microsecond = int((system_clock % 1000) * 1000)
-    formatted_time += f".{microsecond:06d}"
+    global system_clock, formatted_time
+
+    formatted_time = time_update()
 
     msg = f"Client ({client_ips[0]}, {client_ports[0]}) {c1_md5_list} " \
           f"Client ({client_ips[1]}, {client_ports[1]}) {c2_md5_list} " \
@@ -136,13 +131,9 @@ def broadcast_md5_info(cs, f):
 
 
 def receive_chunk_info(cs, f):
-    global system_clock
-    current_time = time.time() * 1000
-    time_difference = current_time - system_clock
-    system_clock += time_difference
-    formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-    microsecond = int((system_clock % 1000) * 1000)
-    formatted_time += f".{microsecond:06d}"
+    global system_clock, formatted_time
+
+    formatted_time = time_update()
 
     while True:
         chunk_len_data = cs.recv(1024).decode()
@@ -152,13 +143,9 @@ def receive_chunk_info(cs, f):
 
 
 def receive_complete_info(cs, f):
-    global system_clock
-    current_time = time.time() * 1000
-    time_difference = current_time - system_clock
-    system_clock += time_difference
-    formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-    microsecond = int((system_clock % 1000) * 1000)
-    formatted_time += f".{microsecond:06d}"
+    global system_clock, formatted_time
+
+    formatted_time = time_update()
 
     complete_msg = cs.recv(1024).decode()
     print(complete_msg)
@@ -166,19 +153,20 @@ def receive_complete_info(cs, f):
 
 
 def main():
-    global system_clock, start_time, end_time
+    global system_clock, start_time, end_time, formatted_time
 
     with open('server.txt', 'w', encoding='utf-8') as server_f:
-        current_time = time.time() * 1000
-        time_difference = current_time - system_clock
-        system_clock += time_difference
-        formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-        microsecond = int((system_clock % 1000) * 1000)
-        formatted_time += f".{microsecond:06d}"
+
+        formatted_time = time_update()
 
         accept_4clients_connection(server_f)
 
         broadcast_connect_info_threads = []
+        receive_md5_threads = []
+        broadcast_md5_info_threads = []
+        chunk_info_threads = []
+        msg_r_threads = []
+
         for cs in client_sockets:
             server_thread = threading.Thread(target=broadcast_connect_4clients, args=(cs, server_f))
             server_thread.start()
@@ -187,7 +175,6 @@ def main():
         for t in broadcast_connect_info_threads:
             t.join()
 
-        receive_md5_threads = []
         for cs in client_sockets:
             server_thread = threading.Thread(target=receive_and_store_md5_data, args=(cs, server_f))
             server_thread.start()
@@ -196,7 +183,6 @@ def main():
         for t in receive_md5_threads:
             t.join()
 
-        broadcast_md5_info_threads = []
         for cs in client_sockets:
             server_thread = threading.Thread(target=broadcast_md5_info, args=(cs, server_f))
             server_thread.start()
@@ -205,7 +191,6 @@ def main():
         for t in broadcast_md5_info_threads:
             t.join()
 
-        chunk_info_threads = []
         for cs in client_sockets:
             server_thread = threading.Thread(target=receive_chunk_info, args=(cs, server_f))
             server_thread.start()
@@ -214,7 +199,6 @@ def main():
         for t in chunk_info_threads:
             t.join()
 
-        msg_r_threads = []
         for cs in client_sockets:
             server_thread = threading.Thread(target=receive_complete_info, args=(cs, server_f))
             server_thread.start()
@@ -228,12 +212,7 @@ def main():
             print(client_md_info)
             server_f.write(client_md_info + '\n')
 
-        current_time = time.time() * 1000
-        time_difference = current_time - system_clock
-        system_clock += time_difference
-        formatted_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(system_clock / 1000))
-        microsecond = int((system_clock % 1000) * 1000)
-        formatted_time += f".{microsecond:06d}"
+        formatted_time = time_update()
         end_time = formatted_time
 
         print(f"End time: {formatted_time}")

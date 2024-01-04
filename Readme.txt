@@ -56,7 +56,6 @@
  - chunk_size : 파일 전송 시 사용되는 청크 크기를 저장하는 변수
  - file_path : 클라이언트가 전송할 파일의 경로를 저장하는 변수
  - file_collection : 클라이언트가 소유한 파일의 목록을 저장하는 변수
- - connected_s_client_socket_list, connected_r_client_socket_list : 연결된 송신 클라이언트 소켓과 수신 클라이언트 소켓 목록을 저장하는 변수
  - connected_client_ip_list, connected_client_port_list : 연결된 클라이언트의 IP 주소와 포트 번호 목록을 저장하는 변수
  - having_md5_list, having_chunk_list1, having_chunk_list2, having_chunk_list3 : 클라이언트가 가지고 있는 MD5 및 청크 정보 목록을 저장하는 변수
  - client_socket : 클라이언트의 소켓을 저장하는 변수
