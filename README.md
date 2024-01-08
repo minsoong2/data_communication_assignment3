@@ -89,22 +89,21 @@ No compilation is required as the source code is written in Python. Python versi
 
 ### 📘Optimized Algorithm Implementation
 
-# Step 1: 서버가 클라이언트와 연결하면서 클라이언트의 IP와 포트 정보를 수집
+#### Step 1: 서버가 클라이언트와 연결하면서 클라이언트의 IP와 포트 정보를 수집
 server.connect4Clients()
 
-# Step 2: 서버는 클라이언트의 IP와 포트 정보를 묶어서 다시 클라이언트에게 송신
+#### Step 2: 서버는 클라이언트의 IP와 포트 정보를 묶어서 다시 클라이언트에게 송신
 connectedClientsInfo = server.getConnectedClientsInfo()
 server.sendTo4Clients(connectedClientsInfo)
 
-# Step 3: 클라이언트는 자신의 .file의 MD5 값을 서버에 송신
+#### Step 3: 클라이언트는 자신의 .file의 MD5 값을 서버에 송신
 client.sendFileMD5ToServer()
 
-# Step 4: 서버는 클라이언트 정보(ip,port)와 파일 MD5 값을 모든 클라이언트에 뿌려줌
+#### Step 4: 서버는 클라이언트 정보(ip,port)와 파일 MD5 값을 모든 클라이언트에 뿌려줌
 allClientsInfo = server.getAllClientsInfoWithFileMD5()
 server.sendTo4Clients(allClientsInfo)
 
-# Step 5: 클라이언트는 자신이 가지고 있지 않은 MD5 값을 가진 클라이언트에게 파일을 요청하고,
-#         자신이 가지고 있는 MD5 값을 상대 클라이언트에게 송신
+#### Step 5: 클라이언트는 자신이 가지고 있지 않은 MD5 값을 가진 클라이언트에게 파일을 요청하고, 자신이 가지고 있는 MD5 값을 상대 클라이언트에게 송신
 for eachClientInfo in allClientsInfo:
     if client.hasFileMD5(eachClientInfo.fileMD5) is False:
         client.requestFileFromOtherClient(eachClientInfo.ip, eachClientInfo.port)
