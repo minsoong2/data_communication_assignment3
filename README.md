@@ -104,13 +104,13 @@ allClientsInfo = server.getAllClientsInfoWithFileMD5()
 server.sendTo4Clients(allClientsInfo)
 
 #### Step 5: 클라이언트는 자신이 가지고 있지 않은 MD5 값을 가진 클라이언트에게 파일을 요청하고, 자신이 가지고 있는 MD5 값을 상대 클라이언트에게 송신
-for eachClientInfo in allClientsInfo:
-    if client.hasFileMD5(eachClientInfo.fileMD5) is False:
-        client.requestFileFromOtherClient(eachClientInfo.ip, eachClientInfo.port)
-    if client.hasFileMD5(eachClientInfo.fileMD5) and \
-            eachClientInfo.ip != client.getOwnIP() and \
-            eachClientInfo.port != client.getOwnPort():
-        client.sendOwnFileMD5ToOtherClient(eachClientInfo.ip, eachClientInfo.port)
+for eachClientInfo in allClientsInfo:  
+    if client.hasFileMD5(eachClientInfo.fileMD5) is False:  
+        client.requestFileFromOtherClient(eachClientInfo.ip, eachClientInfo.port)  
+    if client.hasFileMD5(eachClientInfo.fileMD5) and \  
+            eachClientInfo.ip != client.getOwnIP() and \  
+            eachClientInfo.port != client.getOwnPort():  
+        client.sendOwnFileMD5ToOtherClient(eachClientInfo.ip, eachClientInfo.port)  
 
 - The server connects with clients, gathering their IP and port information, and broadcasts this information to all clients.
 - Clients calculate the MD5 hash of their files and send it to the server.
